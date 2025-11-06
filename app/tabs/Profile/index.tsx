@@ -1,11 +1,5 @@
-/**
- * ProfileTab – Fully customized user profile screen
- * Expo + React-Native + TypeScript + Dark Theme
- * Matches the entire app design: Dark slate + purple accents
- * Features: Avatar, stats, settings list, logout, dark mode toggle
- */
-
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Animated,
@@ -16,7 +10,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  SafeAreaView,
 } from 'react-native';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const AVATAR_SIZE = 100;
 
@@ -34,6 +30,7 @@ const user = {
 
 /* ────────────────────── Reusable Components ────────────────────── */
 const ProfileHeader = () => {
+  const { colors } = useTheme();
   const scaleAnim = useState(new Animated.Value(1))[0];
 
   const animatePress = () => {
@@ -47,30 +44,33 @@ const ProfileHeader = () => {
     <View style={s.header}>
       <TouchableOpacity activeOpacity={0.9} onPress={animatePress}>
         <Animated.View style={[s.avatarWrapper, { transform: [{ scale: scaleAnim }] }]}>
-          <Image source={{ uri: user.avatar }} style={s.avatar} />
-          <View style={s.editOverlay}>
+          <Image source={{ uri: user.avatar }} style={[s.avatar, { borderColor: colors.primary }]} />
+          <View style={[s.editOverlay, { backgroundColor: colors.primary }]}>
             <Ionicons name="camera" size={20} color="#fff" />
           </View>
         </Animated.View>
       </TouchableOpacity>
 
-      <Text style={s.name}>{user.name}</Text>
-      <Text style={s.email}>{user.email}</Text>
+      <Text style={[s.name, { color: colors.text }]}>{user.name}</Text>
+      <Text style={[s.email, { color: colors.textSecondary }]}>{user.email}</Text>
 
-      <View style={s.statsRow}>
+      <View style={[s.statsRow, { 
+        backgroundColor: colors.card,
+        borderColor: colors.borderLight 
+      }]}>
         <View style={s.statItem}>
-          <Text style={s.statValue}>{user.stats.orders}</Text>
-          <Text style={s.statLabel}>Orders</Text>
+          <Text style={[s.statValue, { color: colors.primary }]}>{user.stats.orders}</Text>
+          <Text style={[s.statLabel, { color: colors.textSecondary }]}>Orders</Text>
         </View>
-        <View style={s.statDivider} />
+        <View style={[s.statDivider, { backgroundColor: colors.border }]} />
         <View style={s.statItem}>
-          <Text style={s.statValue}>{user.stats.wishlist}</Text>
-          <Text style={s.statLabel}>Wishlist</Text>
+          <Text style={[s.statValue, { color: colors.primary }]}>{user.stats.wishlist}</Text>
+          <Text style={[s.statLabel, { color: colors.textSecondary }]}>Wishlist</Text>
         </View>
-        <View style={s.statDivider} />
+        <View style={[s.statDivider, { backgroundColor: colors.border }]} />
         <View style={s.statItem}>
-          <Text style={s.statValue}>{user.stats.reviews}</Text>
-          <Text style={s.statLabel}>Reviews</Text>
+          <Text style={[s.statValue, { color: colors.primary }]}>{user.stats.reviews}</Text>
+          <Text style={[s.statLabel, { color: colors.textSecondary }]}>Reviews</Text>
         </View>
       </View>
     </View>
@@ -80,12 +80,15 @@ const ProfileHeader = () => {
 const SettingsSection: React.FC<{ title: string; children: React.ReactNode }> = ({
   title,
   children,
-}) => (
-  <View style={s.section}>
-    <Text style={s.sectionTitle}>{title}</Text>
-    {children}
-  </View>
-);
+}) => {
+  const { colors } = useTheme();
+  return (
+    <View style={s.section}>
+      <Text style={[s.sectionTitle, { color: colors.textSecondary }]}>{title}</Text>
+      {children}
+    </View>
+  );
+};
 
 const SettingsItem: React.FC<{
   icon: keyof typeof Ionicons.glyphMap;
@@ -93,24 +96,35 @@ const SettingsItem: React.FC<{
   subtitle?: string;
   onPress?: () => void;
   right?: React.ReactNode;
-}> = ({ icon, title, subtitle, onPress, right }) => (
-  <TouchableOpacity style={s.settingsItem} onPress={onPress} activeOpacity={0.7}>
-    <View style={s.settingsLeft}>
-      <View style={s.iconWrapper}>
-        <Ionicons name={icon} size={22} color="#6366f1" />
+}> = ({ icon, title, subtitle, onPress, right }) => {
+  const { colors } = useTheme();
+  return (
+    <TouchableOpacity 
+      style={[s.settingsItem, { 
+        backgroundColor: colors.card,
+        borderColor: colors.borderLight 
+      }]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+    >
+      <View style={s.settingsLeft}>
+        <View style={[s.iconWrapper, { backgroundColor: colors.surface }]}>
+          <Ionicons name={icon} size={22} color={colors.primary} />
+        </View>
+        <View>
+          <Text style={[s.settingsTitle, { color: colors.text }]}>{title}</Text>
+          {subtitle && <Text style={[s.settingsSubtitle, { color: colors.textSecondary }]}>{subtitle}</Text>}
+        </View>
       </View>
-      <View>
-        <Text style={s.settingsTitle}>{title}</Text>
-        {subtitle && <Text style={s.settingsSubtitle}>{subtitle}</Text>}
+      <View style={s.settingsRight}>
+        {right || <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />}
       </View>
-    </View>
-    <View style={s.settingsRight}>
-      {right || <Ionicons name="chevron-forward" size={20} color="#6b7280" />}
-    </View>
-  </TouchableOpacity>
-);
+    </TouchableOpacity>
+  );
+};
 
 const LogoutButton = () => {
+  const { colors } = useTheme();
   const fadeAnim = useState(new Animated.Value(1))[0];
 
   const handlePress = () => {
@@ -120,16 +134,19 @@ const LogoutButton = () => {
       useNativeDriver: true,
     }).start(() => {
       Animated.timing(fadeAnim, { toValue: 1, duration: 150, useNativeDriver: true }).start();
-      // In real app: trigger logout
       console.log('Logging out...');
     });
   };
 
   return (
     <TouchableOpacity style={s.logoutBtn} onPress={handlePress}>
-      <Animated.View style={[s.logoutInner, { opacity: fadeAnim }]}>
-        <Ionicons name="log-out-outline" size={22} color="#ef4444" />
-        <Text style={s.logoutText}>Log Out</Text>
+      <Animated.View style={[s.logoutInner, { 
+        backgroundColor: colors.surface,
+        borderColor: colors.error,
+        opacity: fadeAnim 
+      }]}>
+        <Ionicons name="log-out-outline" size={22} color={colors.error} />
+        <Text style={[s.logoutText, { color: colors.error }]}>Log Out</Text>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -137,11 +154,11 @@ const LogoutButton = () => {
 
 /* ────────────────────── Main Screen ────────────────────── */
 export default function ProfileTab() {
-  const [darkMode, setDarkMode] = useState(true);
+  const { colors, isDark, toggleTheme } = useTheme();
   const [notifications, setNotifications] = useState(true);
 
   return (
-    <View style={s.container}>
+    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={s.scrollContent}>
         <ProfileHeader />
 
@@ -171,8 +188,8 @@ export default function ProfileTab() {
               <Switch
                 value={notifications}
                 onValueChange={setNotifications}
-                trackColor={{ false: '#374151', true: '#6366f1' }}
-                thumbColor={notifications ? '#a78bfa' : '#6b7280'}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={notifications ? colors.primaryLight : colors.textTertiary}
               />
             }
           />
@@ -181,10 +198,10 @@ export default function ProfileTab() {
             title="Dark Mode"
             right={
               <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
-                trackColor={{ false: '#374151', true: '#6366f1' }}
-                thumbColor={darkMode ? '#a78bfa' : '#6b7280'}
+                value={isDark}
+                onValueChange={toggleTheme}
+                trackColor={{ false: colors.border, true: colors.primary }}
+                thumbColor={isDark ? colors.primaryLight : colors.textTertiary}
               />
             }
           />
@@ -199,13 +216,13 @@ export default function ProfileTab() {
 
         <LogoutButton />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 /* ────────────────────── Styles ────────────────────── */
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#111827' },
+  container: { flex: 1 },
   scrollContent: { padding: 20, paddingBottom: 40 },
 
   /* Header */
@@ -219,42 +236,36 @@ const s = StyleSheet.create({
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
     borderWidth: 4,
-    borderColor: '#6366f1',
   },
   editOverlay: {
     position: 'absolute',
     bottom: 0,
     right: 0,
-    backgroundColor: '#6366f1',
     width: 36,
     height: 36,
     borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#111827',
   },
-  name: { fontSize: 24, fontWeight: '700', color: '#fff', marginBottom: 4 },
-  email: { fontSize: 14, color: '#9ca3af', marginBottom: 20 },
+  name: { fontSize: 24, fontWeight: '700', marginBottom: 4 },
+  email: { fontSize: 14, marginBottom: 20 },
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(31, 41, 55, 0.6)',
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
   },
   statItem: { flex: 1, alignItems: 'center' },
-  statValue: { fontSize: 20, fontWeight: '700', color: '#a78bfa' },
-  statLabel: { fontSize: 12, color: '#9ca3af', marginTop: 4 },
-  statDivider: { width: 1, backgroundColor: '#374151' },
+  statValue: { fontSize: 20, fontWeight: '700' },
+  statLabel: { fontSize: 12, marginTop: 4 },
+  statDivider: { width: 1 },
 
   /* Section */
   section: { marginBottom: 24 },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#9ca3af',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -265,22 +276,19 @@ const s = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: 'rgba(31, 41, 55, 0.6)',
     borderRadius: 16,
     padding: 16,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
   },
   settingsLeft: { flexDirection: 'row', alignItems: 'center' },
   iconWrapper: {
-    backgroundColor: 'rgba(99,102,241,0.2)',
     borderRadius: 12,
     padding: 8,
     marginRight: 12,
   },
-  settingsTitle: { fontSize: 16, fontWeight: '600', color: '#e5e7eb' },
-  settingsSubtitle: { fontSize: 12, color: '#9ca3af', marginTop: 2 },
+  settingsTitle: { fontSize: 16, fontWeight: '600' },
+  settingsSubtitle: { fontSize: 12, marginTop: 2 },
   settingsRight: { flexDirection: 'row', alignItems: 'center' },
 
   /* Logout */
@@ -288,12 +296,10 @@ const s = StyleSheet.create({
   logoutInner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#ef4444',
   },
-  logoutText: { color: '#ef4444', fontWeight: '600', fontSize: 16, marginLeft: 8 },
+  logoutText: { fontWeight: '600', fontSize: 16, marginLeft: 8 },
 });

@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   Animated,
@@ -11,49 +12,40 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  SafeAreaView,
 } from 'react-native';
+import { useApp } from '../../../contexts/AppContext';
+import { useTheme } from '../../../contexts/ThemeContext';
+
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-/* ────────────────────── Mock Data ────────────────────── */
-const featuredProducts = [
-  { id: 1, name: 'Chronos Elite', price: '$249', image: 'https://placehold.co/400x400/1e293b/ffffff?text=Watch' },
-  { id: 2, name: 'Nova Runner', price: '$189', image: 'https://placehold.co/400x400/0f172a/ffffff?text=Shoes' },
-  { id: 3, name: 'AirBuds Pro', price: '$299', image: 'https://placehold.co/400x400/1e3a8a/ffffff?text=EarBuds' },
-  { id: 4, name: 'Studio Beats', price: '$159', image: 'https://placehold.co/400x400/111827/ffffff?text=Headphones' },
-  { id: 5, name: 'BoomBox Mini', price: '$99', image: 'https://placehold.co/400x400/059669/ffffff?text=Speaker' },
-  { id: 6, name: 'Leather Vault', price: '$79', image: 'https://placehold.co/400x400/7c2d12/ffffff?text=Wallet' },
-];
-
-const popularProducts = [
-  { id: 7, name: 'OLED Vision', price: '$1,299', image: 'https://placehold.co/400x400/0f172a/ffffff?text=TV' },
-  { id: 8, name: 'Cozy Hoodie', price: '$59', image: 'https://placehold.co/400x400/374151/ffffff?text=Hoodie' },
-  { id: 9, name: 'Arctic Puffer', price: '$219', image: 'https://placehold.co/400x400/1e40af/ffffff?text=Jacket' },
-  { id: 10, name: 'DSLR Pro', price: '$1,199', image: 'https://placehold.co/400x400/1f2937/ffffff?text=Camera' },
-  { id: 11, name: 'Gaming Mouse', price: '$89', image: 'https://placehold.co/400x400/7c3aed/ffffff?text=Mouse' },
-  { id: 12, name: 'Eco Yoga Mat', price: '$39', image: 'https://placehold.co/400x400/6b21a8/ffffff?text=Yoga' },
-];
-
 /* ────────────────────── Reusable Components ────────────────────── */
-export const Header = () => {
-  const [cartCount] = useState(3); // demo
+const Header = () => {
+  const { getCartCount } = useApp();
+  const { colors } = useTheme();
+  const router = useRouter();
+  const cartCount = getCartCount();
 
   return (
-    <View style={s.header}>
+    <View style={[s.header, { backgroundColor: colors.background }]}>
       <View style={s.headerLeft}>
-        <Image source={{ uri: 'https://placehold.co/56x56/6366f1/fff?text=JW' }} style={s.avatar} />
+        <Image source={{ uri: 'https://placehold.co/56x56/6366f1/fff?text=JW' }} style={[s.avatar, { borderColor: colors.primary }]} />
         <View>
-          <Text style={s.welcome}>Welcome back,</Text>
-          <Text style={s.user}>John William</Text>
+          <Text style={[s.welcome, { color: colors.textSecondary }]}>Welcome back,</Text>
+          <Text style={[s.user, { color: colors.text }]}>John William</Text>
         </View>
       </View>
 
       <View style={s.headerRight}>
-        <TouchableOpacity style={s.iconBtn}>
-          <Ionicons name="notifications-outline" size={24} color="#e5e7eb" />
-          <View style={s.badge} />
+        <TouchableOpacity style={[s.iconBtn, { backgroundColor: colors.surface }]}>
+          <Ionicons name="notifications-outline" size={24} color={colors.text} />
+          <View style={[s.badge, { backgroundColor: colors.error }]} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={s.cartBtn}>
+        <TouchableOpacity 
+          style={[s.cartBtn, { backgroundColor: colors.primary }]}
+          onPress={() => router.push('/tabs/Cart')}
+        >
           <Ionicons name="cart-outline" size={26} color="#fff" />
           {cartCount > 0 && (
             <View style={s.cartBadge}>
@@ -68,20 +60,27 @@ export const Header = () => {
 
 const SearchBar = () => {
   const [focused, setFocused] = useState(false);
+  const { colors } = useTheme();
+  const { searchQuery, setSearchQuery } = useApp();
 
   return (
-    <View style={[s.searchContainer, focused && s.searchFocused]}>
-      <Ionicons name="search" size={20} color={focused ? '#6366f1' : '#9ca3af'} />
+    <View style={[s.searchContainer, { 
+      backgroundColor: colors.surface,
+      borderColor: focused ? colors.primary : colors.border 
+    }]}>
+      <Ionicons name="search" size={20} color={focused ? colors.primary : colors.textSecondary} />
       <TextInput
         placeholder="Search products, brands…"
-        placeholderTextColor="#9ca3af"
-        style={s.searchInput}
+        placeholderTextColor={colors.textSecondary}
+        style={[s.searchInput, { color: colors.text }]}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
       />
-      {focused && (
-        <TouchableOpacity onPress={() => setFocused(false)}>
-          <Ionicons name="close" size={20} color="#6366f1" />
+      {focused && searchQuery && (
+        <TouchableOpacity onPress={() => setSearchQuery('')}>
+          <Ionicons name="close" size={20} color={colors.primary} />
         </TouchableOpacity>
       )}
     </View>
@@ -90,6 +89,7 @@ const SearchBar = () => {
 
 /* Hero Banner Carousel */
 const Banner = () => {
+  const { colors } = useTheme();
   const scrollX = useRef(new Animated.Value(0)).current;
   const banners: Array<{ title: string; discount: string; collection: string; color: [string, string] }> = [
     { title: 'Winter Sale', discount: '30% OFF', collection: 'Cozy Essentials', color: ['#4c1d95', '#7c3aed'] },
@@ -131,7 +131,7 @@ const Banner = () => {
           const dotWidth = scrollX.interpolate({ inputRange, outputRange: [8, 20, 8], extrapolate: 'clamp' });
           const opacity = scrollX.interpolate({ inputRange, outputRange: [0.3, 1, 0.3], extrapolate: 'clamp' });
           return (
-            <Animated.View key={i} style={[s.dot, { width: dotWidth, opacity }]} />
+            <Animated.View key={i} style={[s.dot, { width: dotWidth, opacity, backgroundColor: colors.primary }]} />
           );
         })}
       </View>
@@ -139,47 +139,74 @@ const Banner = () => {
   );
 };
 
-const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
-  <View style={s.sectionHeader}>
-    <Text style={s.sectionTitle}>{title}</Text>
-    <TouchableOpacity style={s.seeAll}>
-      <Text style={s.seeAllText}>See All</Text>
-      <Ionicons name="chevron-forward" size={16} color="#6366f1" />
-    </TouchableOpacity>
-  </View>
-);
+const SectionHeader: React.FC<{ title: string }> = ({ title }) => {
+  const { colors } = useTheme();
+  return (
+    <View style={s.sectionHeader}>
+      <Text style={[s.sectionTitle, { color: colors.text }]}>{title}</Text>
+      <TouchableOpacity style={s.seeAll}>
+        <Text style={[s.seeAllText, { color: colors.primary }]}>See All</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.primary} />
+      </TouchableOpacity>
+    </View>
+  );
+};
 
-const ProductCard: React.FC<{ product: typeof featuredProducts[number]; onAdd: () => void }> = ({
-  product,
-  onAdd,
-}) => {
+const ProductCard: React.FC<{ product: any; onPress: () => void }> = ({ product, onPress }) => {
+  const { colors } = useTheme();
+  const { addToCart, addToWishlist, removeFromWishlist, isInWishlist } = useApp();
   const scale = useRef(new Animated.Value(1)).current;
+  const inWishlist = isInWishlist(product.id);
 
   const animatePress = () => {
     Animated.sequence([
       Animated.timing(scale, { toValue: 0.96, duration: 80, useNativeDriver: true }),
       Animated.timing(scale, { toValue: 1, duration: 80, useNativeDriver: true }),
     ]).start();
-    onAdd();
+  };
+
+  const handleWishlist = (e: any) => {
+    e.stopPropagation();
+    if (inWishlist) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
+
+  const handleAddToCart = (e: any) => {
+    e.stopPropagation();
+    animatePress();
+    addToCart(product);
   };
 
   return (
-    <Animated.View style={[s.card, { transform: [{ scale }] }]}>
-      <TouchableOpacity activeOpacity={0.9} onPress={animatePress}>
+    <Animated.View style={[s.card, { 
+      backgroundColor: colors.card,
+      borderColor: colors.borderLight,
+      transform: [{ scale }] 
+    }]}>
+      <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
         <View style={s.cardImageWrapper}>
           <Image source={{ uri: product.image }} style={s.cardImage} />
-          <TouchableOpacity style={s.favBtn}>
-            <Ionicons name="heart-outline" size={20} color="#fff" />
+          <TouchableOpacity 
+            style={[s.favBtn, { backgroundColor: inWishlist ? colors.error : 'rgba(0,0,0,0.4)' }]}
+            onPress={handleWishlist}
+          >
+            <Ionicons name={inWishlist ? 'heart' : 'heart-outline'} size={20} color="#fff" />
           </TouchableOpacity>
         </View>
 
         <View style={s.cardBody}>
-          <Text style={s.cardName} numberOfLines={2}>
+          <Text style={[s.cardName, { color: colors.text }]} numberOfLines={2}>
             {product.name}
           </Text>
-          <Text style={s.cardPrice}>{product.price}</Text>
+          <Text style={[s.cardPrice, { color: colors.primary }]}>${product.price.toFixed(2)}</Text>
 
-          <TouchableOpacity style={s.addBtn} onPress={animatePress}>
+          <TouchableOpacity 
+            style={[s.addBtn, { backgroundColor: colors.primary }]} 
+            onPress={handleAddToCart}
+          >
             <Ionicons name="add" size={18} color="#fff" />
             <Text style={s.addBtnText}>Add</Text>
           </TouchableOpacity>
@@ -189,20 +216,19 @@ const ProductCard: React.FC<{ product: typeof featuredProducts[number]; onAdd: (
   );
 };
 
-const ProductSection: React.FC<{ title: string; data: typeof featuredProducts }> = ({ title, data }) => {
-  const [cart, setCart] = useState<number[]>([]);
-
-  const handleAdd = (id: number) => {
-    setCart((c) => (c.includes(id) ? c : [...c, id]));
-    // You could dispatch to a global cart context here
-  };
+const ProductSection: React.FC<{ title: string; data: any[] }> = ({ title, data }) => {
+  const router = useRouter();
 
   return (
     <View style={s.section}>
       <SectionHeader title={title} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.sectionScroll}>
         {data.map((p) => (
-          <ProductCard key={p.id} product={p} onAdd={() => handleAdd(p.id)} />
+          <ProductCard 
+            key={p.id} 
+            product={p} 
+            onPress={() => router.push(`/product/${p.id}`)}
+          />
         ))}
       </ScrollView>
     </View>
@@ -211,9 +237,19 @@ const ProductSection: React.FC<{ title: string; data: typeof featuredProducts }>
 
 /* ────────────────────── Main Screen ────────────────────── */
 export default function HomeTab() {
+  const { colors } = useTheme();
+  const { products, searchQuery } = useApp();
+
+  // Filter products based on search query
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const featuredProducts = filteredProducts.slice(0, 6);
+  const popularProducts = filteredProducts.slice(6, 12);
+
   return (
-    <View style={s.container}>
-      {/* Mobile Frame */}
+    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]}>
       <View style={s.frame}>
         {/* Fixed Header */}
         <Header />
@@ -226,31 +262,32 @@ export default function HomeTab() {
         {/* Scrollable Area */}
         <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
           <Banner />
-          <ProductSection title="Featured Deals" data={featuredProducts} />
-          <ProductSection title="Most Popular" data={popularProducts} />
+          {featuredProducts.length > 0 && (
+            <ProductSection title="Featured Deals" data={featuredProducts} />
+          )}
+          {popularProducts.length > 0 && (
+            <ProductSection title="Most Popular" data={popularProducts} />
+          )}
+          {filteredProducts.length === 0 && searchQuery && (
+            <View style={s.emptyState}>
+              <Ionicons name="search-outline" size={64} color={colors.textSecondary} />
+              <Text style={[s.emptyText, { color: colors.textSecondary }]}>No products found</Text>
+            </View>
+          )}
           <View style={s.bottomSpacer} />
         </ScrollView>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 /* ────────────────────── Styles ────────────────────── */
 const s = StyleSheet.create({
   /* Layout */
-  container: { flex: 1, backgroundColor: '#0f172a', alignItems: 'center' },
+  container: { flex: 1 },
   frame: {
     width: '100%',
-    maxWidth: 448,
-    backgroundColor: '#111827',
     flex: 1,
-    borderRadius: 32,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
-    shadowRadius: 20,
-    elevation: 15,
   },
 
   /* Header */
@@ -259,28 +296,25 @@ const s = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingTop: 20,
     paddingBottom: 12,
-    backgroundColor: 'transparent',
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', columnGap: 12 },
-  avatar: { width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: '#6366f1' },
-  welcome: { fontSize: 13, color: '#9ca3af', fontWeight: '500' },
-  user: { fontSize: 20, color: '#fff', fontWeight: '700', letterSpacing: -0.3 },
+  avatar: { width: 52, height: 52, borderRadius: 26, borderWidth: 2 },
+  welcome: { fontSize: 13, fontWeight: '500' },
+  user: { fontSize: 20, fontWeight: '700', letterSpacing: -0.3 },
   headerRight: { flexDirection: 'row', columnGap: 12 },
-  iconBtn: { position: 'relative', padding: 8, backgroundColor: '#1f2937', borderRadius: 999 },
+  iconBtn: { position: 'relative', padding: 8, borderRadius: 999 },
   badge: {
     position: 'absolute',
     top: 6,
     right: 6,
     width: 10,
     height: 10,
-    backgroundColor: '#ef4444',
     borderRadius: 5,
     borderWidth: 1.5,
-    borderColor: '#111827',
   },
-  cartBtn: { position: 'relative', padding: 9, backgroundColor: '#6366f1', borderRadius: 999 },
+  cartBtn: { position: 'relative', padding: 9, borderRadius: 999 },
   cartBadge: {
     position: 'absolute',
     top: -4,
@@ -299,15 +333,12 @@ const s = StyleSheet.create({
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f2937',
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#374151',
   },
-  searchFocused: { borderColor: '#6366f1', backgroundColor: '#111827' },
-  searchInput: { flex: 1, marginLeft: 10, color: '#e5e7eb', fontSize: 15 },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 15 },
 
   /* Hero Banner */
   bannerWrapper: { marginHorizontal: 20, marginVertical: 16, height: 200, borderRadius: 24, overflow: 'hidden' },
@@ -327,7 +358,7 @@ const s = StyleSheet.create({
   bannerCtaText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   bannerImg: { width: 110, height: 110, borderRadius: 16, marginLeft: 12 },
   dots: { flexDirection: 'row', justifyContent: 'center', marginTop: 12 },
-  dot: { height: 8, borderRadius: 4, backgroundColor: '#6366f1', marginHorizontal: 4 },
+  dot: { height: 8, borderRadius: 4, marginHorizontal: 4 },
 
   /* Section */
   section: { marginBottom: 32 },
@@ -338,24 +369,22 @@ const s = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 12,
   },
-  sectionTitle: { fontSize: 22, color: '#fff', fontWeight: '700' },
+  sectionTitle: { fontSize: 22, fontWeight: '700' },
   seeAll: { flexDirection: 'row', alignItems: 'center' },
-  seeAllText: { color: '#6366f1', fontWeight: '600', marginRight: 4 },
+  seeAllText: { fontWeight: '600', marginRight: 4 },
 
   sectionScroll: { paddingLeft: 12 },
 
-  /* Product Card (Glassmorphic) */
+  /* Product Card */
   card: {
     width: 170,
-    backgroundColor: 'rgba(31, 41, 55, 0.45)',
     borderRadius: 20,
     marginHorizontal: 8,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 12,
   },
@@ -365,19 +394,17 @@ const s = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(0,0,0,0.4)',
     padding: 6,
     borderRadius: 999,
   },
   cardBody: { padding: 12 },
-  cardName: { color: '#e5e7eb', fontSize: 14, fontWeight: '600', marginBottom: 4 },
-  cardPrice: { color: '#a78bfa', fontSize: 18, fontWeight: '800' },
+  cardName: { fontSize: 14, fontWeight: '600', marginBottom: 4 },
+  cardPrice: { fontSize: 18, fontWeight: '800' },
   addBtn: {
     marginTop: 8,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#6366f1',
     paddingVertical: 6,
     borderRadius: 12,
   },
@@ -386,4 +413,6 @@ const s = StyleSheet.create({
   /* Misc */
   scroll: { flex: 1 },
   bottomSpacer: { height: 60 },
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  emptyText: { fontSize: 16, marginTop: 16 },
 });

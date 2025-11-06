@@ -1,23 +1,24 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform, View, StyleSheet } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-
-const ACTIVE_ICON_COLOR = 'rgb(0, 0, 0)'; // Black
-const INACTIVE_ICON_COLOR = 'rgb(161, 161, 175)'; // Gray-400 equivalent
+import { Platform, View, StyleSheet, Text } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring, interpolate } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useApp } from '../../contexts/AppContext';
 
 interface TabIconProps {
-  name: keyof typeof Ionicons.glyphMap; // Assuming name is a valid Ionicons name
+  name: keyof typeof Ionicons.glyphMap;
   focused: boolean;
 }
 
 const TabIcon = ({ name, focused }: TabIconProps) => {
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
 
   React.useEffect(() => {
     scale.value = withSpring(focused ? 1.2 : 1);
-  }, [focused]); // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focused]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -28,13 +29,19 @@ const TabIcon = ({ name, focused }: TabIconProps) => {
   return (
     <View style={styles.tabIconContainer}>
       <Animated.View style={animatedStyle}>
-        <Ionicons name={name} color={focused ? ACTIVE_ICON_COLOR : INACTIVE_ICON_COLOR} size={24} />
+        <Ionicons 
+          name={name} 
+          color={focused ? colors.primary : colors.textSecondary} 
+          size={24} 
+        />
       </Animated.View>
     </View>
   );
 };
 
 const TabsLayout = () => {
+  const { colors, isDark } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
@@ -45,13 +52,16 @@ const TabsLayout = () => {
           left: 20,
           right: 20,
           elevation: 0,
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          borderRadius: 32, // 2rem
+          backgroundColor: colors.tabBar,
+          borderRadius: 32,
           height: 60,
-          shadowColor: '#000',
+          shadowColor: colors.shadow,
           shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.15,
+          shadowOpacity: isDark ? 0.3 : 0.15,
           shadowRadius: 3.84,
+          borderTopWidth: 0,
+          borderWidth: 1,
+          borderColor: colors.border,
           ...Platform.select({
             android: {
               borderTopWidth: 0,
@@ -104,3 +114,6 @@ const styles = StyleSheet.create({
 });
 
 export default TabsLayout;
+
+
+

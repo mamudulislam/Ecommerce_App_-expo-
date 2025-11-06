@@ -1,12 +1,6 @@
-/**
- * CategoriesTab – Fully customized e-commerce categories screen
- * Expo + React-Native + TypeScript + Dark Theme
- * Matches the HomeTab and CartTab design: Dark slate + purple accents
- * Features: Grid layout with glassy cards, search, expandable sub-categories
- */
-
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   Animated,
@@ -18,14 +12,15 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  SafeAreaView,
 } from 'react-native';
+import { useTheme } from '../../../contexts/ThemeContext';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const NUM_COLUMNS = 2;
-const CARD_WIDTH = (SCREEN_WIDTH - 60) / NUM_COLUMNS; // Padding adjusted
+const CARD_WIDTH = (SCREEN_WIDTH - 60) / NUM_COLUMNS;
 
 /* ────────────────────── Mock Categories Data ────────────────────── */
-// In a real app, fetch from API
 const categories = [
   {
     id: 1,
@@ -72,29 +67,39 @@ const categories = [
 ];
 
 /* ────────────────────── Reusable Components ────────────────────── */
-const CategoriesHeader = () => (
-  <View style={s.header}>
-    <Text style={s.headerTitle}>Categories</Text>
-    <Text style={s.headerSubtitle}>Explore our collections</Text>
-  </View>
-);
+const CategoriesHeader = () => {
+  const { colors } = useTheme();
+  return (
+    <View style={s.header}>
+      <Text style={[s.headerTitle, { color: colors.text }]}>Categories</Text>
+      <Text style={[s.headerSubtitle, { color: colors.textSecondary }]}>Explore our collections</Text>
+    </View>
+  );
+};
 
 const SearchBar = () => {
   const [focused, setFocused] = useState(false);
+  const [query, setQuery] = useState('');
+  const { colors } = useTheme();
 
   return (
-    <View style={[s.searchContainer, focused && s.searchFocused]}>
-      <Ionicons name="search" size={20} color={focused ? '#6366f1' : '#9ca3af'} />
+    <View style={[s.searchContainer, { 
+      backgroundColor: colors.surface,
+      borderColor: focused ? colors.primary : colors.border 
+    }]}>
+      <Ionicons name="search" size={20} color={focused ? colors.primary : colors.textSecondary} />
       <TextInput
         placeholder="Search categories…"
-        placeholderTextColor="#9ca3af"
-        style={s.searchInput}
+        placeholderTextColor={colors.textSecondary}
+        style={[s.searchInput, { color: colors.text }]}
+        value={query}
+        onChangeText={setQuery}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
       />
-      {focused && (
-        <TouchableOpacity onPress={() => setFocused(false)}>
-          <Ionicons name="close" size={20} color="#6366f1" />
+      {focused && query && (
+        <TouchableOpacity onPress={() => { setFocused(false); setQuery(''); }}>
+          <Ionicons name="close" size={20} color={colors.primary} />
         </TouchableOpacity>
       )}
     </View>
@@ -106,6 +111,7 @@ const CategoryCard: React.FC<{
   onPress: (id: number) => void;
   expanded: boolean;
 }> = ({ category, onPress, expanded }) => {
+  const { colors } = useTheme();
   const heightAnim = useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
@@ -124,7 +130,10 @@ const CategoryCard: React.FC<{
   return (
     <TouchableOpacity
       activeOpacity={0.9}
-      style={s.card}
+      style={[s.card, { 
+        backgroundColor: colors.card,
+        borderColor: colors.borderLight 
+      }]}
       onPress={() => onPress(category.id)}
     >
       <LinearGradient
@@ -132,14 +141,14 @@ const CategoryCard: React.FC<{
         style={s.cardGradient}
       >
         <View style={s.cardHeader}>
-          <View style={s.iconWrapper}>
-            <Ionicons name={category.icon} size={28} color="#6366f1" />
+          <View style={[s.iconWrapper, { backgroundColor: colors.surface }]}>
+            <Ionicons name={category.icon} size={28} color={colors.primary} />
           </View>
-          <Text style={s.cardName}>{category.name}</Text>
+          <Text style={[s.cardName, { color: colors.text }]}>{category.name}</Text>
           <Ionicons
             name={expanded ? 'chevron-up' : 'chevron-down'}
             size={20}
-            color="#9ca3af"
+            color={colors.textSecondary}
             style={s.expandIcon}
           />
         </View>
@@ -148,8 +157,8 @@ const CategoryCard: React.FC<{
 
       <Animated.View style={[s.subCategories, { height: subHeight }]}>
         {category.subCategories.map((sub, index) => (
-          <TouchableOpacity key={index} style={s.subItem}>
-            <Text style={s.subText}>{sub}</Text>
+          <TouchableOpacity key={index} style={[s.subItem, { borderBottomColor: colors.border }]}>
+            <Text style={[s.subText, { color: colors.textSecondary }]}>{sub}</Text>
           </TouchableOpacity>
         ))}
       </Animated.View>
@@ -159,6 +168,7 @@ const CategoryCard: React.FC<{
 
 /* ────────────────────── Main Screen ────────────────────── */
 export default function CategoriesTab() {
+  const { colors } = useTheme();
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -171,7 +181,7 @@ export default function CategoriesTab() {
   };
 
   return (
-    <View style={s.container}>
+    <SafeAreaView style={[s.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={filteredCategories}
         keyExtractor={(item) => item.id.toString()}
@@ -192,67 +202,59 @@ export default function CategoriesTab() {
         contentContainerStyle={s.listContent}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
 /* ────────────────────── Styles ────────────────────── */
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#111827' },
+  container: { flex: 1 },
   listContent: { padding: 20, paddingBottom: 40 },
 
   /* Header */
   header: { marginBottom: 16 },
-  headerTitle: { fontSize: 28, fontWeight: '700', color: '#fff' },
-  headerSubtitle: { fontSize: 14, color: '#9ca3af', marginTop: 4 },
+  headerTitle: { fontSize: 28, fontWeight: '700' },
+  headerSubtitle: { fontSize: 14, marginTop: 4 },
 
   /* Search */
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f2937',
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#374151',
     marginBottom: 24,
   },
-  searchFocused: { borderColor: '#6366f1', backgroundColor: '#111827' },
-  searchInput: { flex: 1, marginLeft: 10, color: '#e5e7eb', fontSize: 15 },
+  searchInput: { flex: 1, marginLeft: 10, fontSize: 15 },
 
   /* Category Card */
   card: {
     width: CARD_WIDTH,
-    backgroundColor: 'rgba(31, 41, 55, 0.6)',
     borderRadius: 20,
     margin: 8,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
   },
   cardGradient: { padding: 16 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
   iconWrapper: {
-    backgroundColor: 'rgba(99,102,241,0.2)',
     borderRadius: 12,
     padding: 8,
     marginRight: 12,
   },
-  cardName: { flex: 1, fontSize: 16, fontWeight: '600', color: '#e5e7eb' },
+  cardName: { flex: 1, fontSize: 16, fontWeight: '600' },
   expandIcon: { marginLeft: 8 },
   cardImage: { width: '100%', height: 100, borderRadius: 12 },
-
   subCategories: { overflow: 'hidden', paddingHorizontal: 16 },
   subItem: {
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#374151',
   },
-  subText: { color: '#9ca3af', fontSize: 14 },
+  subText: { fontSize: 14 },
 });
