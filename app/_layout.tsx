@@ -4,6 +4,8 @@ import { ThemeProvider } from '../contexts/ThemeContext';
 import { AppProvider } from '../contexts/AppContext';
 import { StatusBar } from 'expo-status-bar';
 import { useTheme } from '../contexts/ThemeContext';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import LoginScreen from './login';
 
 const RootLayoutNav = () => {
   const { isDark } = useTheme();
@@ -35,13 +37,25 @@ const RootLayoutNav = () => {
   );
 };
 
+const AppLayout = () => {
+  const { isLoggedIn } = useAuth();
+
+  if (!isLoggedIn) {
+    return <LoginScreen />;
+  }
+
+  return <RootLayoutNav />;
+}
+
 const RootLayout = () => {
   return (
-    <ThemeProvider>
-      <AppProvider>
-        <RootLayoutNav />
-      </AppProvider>
-    </ThemeProvider>
+    <AppProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <AppLayout />
+        </ThemeProvider>
+      </AuthProvider>
+    </AppProvider>
   );
 };
 

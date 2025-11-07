@@ -128,13 +128,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setCart((prevCart) => prevCart.filter((item) => item.id !== productId));
   };
 
-  const updateCartQuantity = (productId: number, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
+  const updateCartQuantity = (productId: number, delta: number) => {
     setCart((prevCart) =>
-      prevCart.map((item) => (item.id === productId ? { ...item, quantity } : item))
+      prevCart
+        .map((item) => {
+          if (item.id === productId) {
+            const newQuantity = item.quantity + delta;
+            return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
+          }
+          return item;
+        })
+        .filter((item): item is CartItem => item !== null)
     );
   };
 
