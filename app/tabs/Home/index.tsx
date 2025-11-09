@@ -37,7 +37,10 @@ const Header = () => {
       </View>
 
       <View style={s.headerRight}>
-        <TouchableOpacity style={[s.iconBtn, { backgroundColor: colors.surface }]}>
+        <TouchableOpacity 
+          style={[s.iconBtn, { backgroundColor: colors.surface }]}
+          onPress={() => router.push('/notifications')}
+        >
           <Ionicons name="notifications-outline" size={24} color={colors.text} />
           <View style={[s.badge, { backgroundColor: colors.error }]} />
         </TouchableOpacity>

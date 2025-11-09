@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Alert,
   Animated,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -19,27 +20,57 @@ import { useTheme } from '../contexts/ThemeContext';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
-const EmailInput: React.FC<{
-  value: string;
-  onChangeText: (text: string) => void;
-  placeholder: string;
-}> = ({ value, onChangeText, placeholder }) => {
+const OTP_LENGTH = 6;
+
+const OTPInput: React.FC<{
+  otp: string[];
+  setOtp: React.Dispatch<React.SetStateAction<string[]>>;
+}> = ({ otp, setOtp }) => {
   const { colors } = useTheme();
+  const inputsRef = useRef<Array<TextInput | null>>([]);
+
+  const handleInputChange = (text: string, index: number) => {
+    if (text.length > 1) {
+      text = text.slice(-1);
+    }
+
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+
+    if (text.length === 1 && index < OTP_LENGTH - 1) {
+      inputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyPress = (e: any, index: number) => {
+    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
+      inputsRef.current[index - 1]?.focus();
+    }
+  };
 
   return (
-    <View style={[s.inputContainer, { backgroundColor: colors.surface }]}>
-      <Ionicons name="mail-outline" size={20} color={colors.textSecondary} style={s.inputIcon} />
-      <TextInput
-        style={[s.input, { color: colors.text }]}
-        placeholder={placeholder}
-        placeholderTextColor={colors.textSecondary}
-        value={value}
-        onChangeText={onChangeText}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        autoCorrect={false}
-        autoComplete="email"
-      />
+    <View style={s.otpContainer}>
+      {Array.from({ length: OTP_LENGTH }).map((_, index) => (
+        <TextInput
+          key={index}
+          ref={ref => (inputsRef.current[index] = ref)}
+          style={[
+            s.otpInput,
+            {
+              backgroundColor: colors.surface,
+              color: colors.text,
+              borderColor: otp[index] ? colors.primary : colors.border,
+            },
+          ]}
+          value={otp[index]}
+          onChangeText={text => handleInputChange(text, index)}
+          onKeyPress={e => handleKeyPress(e, index)}
+          keyboardType="number-pad"
+          maxLength={1}
+          selectionColor={colors.primary}
+        />
+      ))}
     </View>
   );
 };
@@ -87,7 +118,7 @@ const SubmitButton: React.FC<{
       {loading ? (
         <View style={s.loadingContainer}>
           <Ionicons name="reload" size={20} color="#fff" style={s.loadingIcon} />
-          <Text style={s.submitButtonText}>Sending...</Text>
+          <Text style={s.submitButtonText}>Verifying...</Text>
         </View>
       ) : (
         <Text style={s.submitButtonText}>{title}</Text>
@@ -96,41 +127,58 @@ const SubmitButton: React.FC<{
   );
 };
 
-export default function ForgotPasswordScreen() {
+export default function ForgotPasswordOTPScreen() {
   const { colors, isDark } = useTheme();
   const router = useRouter();
+  const { email } = useLocalSearchParams<{ email: string }>();
 
-  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(60);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setResendTimer(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleSubmit = async () => {
-    if (!email) {
-      Alert.alert('Error', 'Please enter your email address');
-      return;
-    }
-
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      Alert.alert('Error', 'Please enter a valid email address');
+    const otpCode = otp.join('');
+    if (otpCode.length !== OTP_LENGTH) {
+      Alert.alert('Error', 'Please enter the complete OTP');
       return;
     }
 
     setLoading(true);
+    Keyboard.dismiss();
 
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
-      router.push({
-        pathname: '/forgot-password-otp',
-        params: { email }
-      });
+      if (otpCode === '123456') { // Demo: correct OTP
+        Alert.alert('Success', 'Your password has been reset.', [
+          { text: 'OK', onPress: () => router.replace('/login') },
+        ]);
+      } else {
+        Alert.alert('Error', 'The OTP is incorrect. Please try again.');
+        setOtp(Array(OTP_LENGTH).fill(''));
+      }
     }, 2000);
+  };
+
+  const handleResendCode = () => {
+    if (resendTimer > 0) return;
+
+    Alert.alert('Code Sent', `A new code has been sent to ${email}`);
+    setResendTimer(60);
   };
 
   const handleBackToLogin = () => {
     router.back();
   };
 
-  const isFormValid = email.length > 0;
+  const isFormValid = otp.join('').length === OTP_LENGTH;
 
   return (
     <SafeAreaView style={[s.container, { backgroundColor: colors.background }]}>
@@ -157,39 +205,39 @@ export default function ForgotPasswordScreen() {
           {/* Header Section */}
           <View style={s.header}>
             <View style={[s.iconContainer, { backgroundColor: colors.primary + '20' }]}>
-              <Ionicons name="key-outline" size={32} color={colors.primary} />
+              <Ionicons name="shield-checkmark-outline" size={32} color={colors.primary} />
             </View>
-            <Text style={[s.title, { color: colors.text }]}>Forgot Password</Text>
+            <Text style={[s.title, { color: colors.text }]}>Enter OTP</Text>
             <Text style={[s.subtitle, { color: colors.textSecondary }]}>
-              Enter your email address and we'll send you a code to reset your password
+              A 6-digit code has been sent to{' '}
+              <Text style={{ fontWeight: 'bold', color: colors.text }}>{email}</Text>
             </Text>
           </View>
 
           {/* Form Section */}
           <View style={s.form}>
-            <EmailInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email address"
-            />
+            <OTPInput otp={otp} setOtp={setOtp} />
 
-            {/* Submit Button */}
             <SubmitButton
-              title="Send Reset Code"
+              title="Verify Code"
               onPress={handleSubmit}
               loading={loading}
               disabled={!isFormValid || loading}
             />
 
-            {/* Help Text */}
+            {/* Resend Code */}
             <View style={s.helpContainer}>
               <Text style={[s.helpText, { color: colors.textSecondary }]}>
-                Remember your password?{' '}
+                Didn't receive the code?{' '}
                 <Text
-                  style={[s.helpLink, { color: colors.primary }]}
-                  onPress={handleBackToLogin}
+                  style={[
+                    s.helpLink,
+                    { color: resendTimer > 0 ? colors.textTertiary : colors.primary },
+                  ]}
+                  onPress={handleResendCode}
+                  disabled={resendTimer > 0}
                 >
-                  Back to Sign In
+                  Resend {resendTimer > 0 ? `(${resendTimer}s)` : ''}
                 </Text>
               </Text>
             </View>
@@ -248,28 +296,19 @@ const s = StyleSheet.create({
   form: {
     marginBottom: 30,
   },
-  inputContainer: {
+  otpContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    marginBottom: 24,
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  otpInput: {
+    width: 48,
     height: 56,
-    borderWidth: 1,
-    borderColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  inputIcon: {
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '500',
+    borderRadius: 12,
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+    borderWidth: 2,
   },
   submitButton: {
     height: 56,

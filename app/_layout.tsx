@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import React from 'react';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { AppProvider } from '../contexts/AppContext';
@@ -16,6 +16,10 @@ const RootLayoutNav = () => {
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="tabs" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="register" options={{ headerShown: false }} />
+        <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
+        <Stack.Screen name="forgot-password-otp" options={{ headerShown: false }} />
         <Stack.Screen 
           name="product/[id]" 
           options={{ 
@@ -32,6 +36,14 @@ const RootLayoutNav = () => {
             animation: 'slide_from_bottom'
           }} 
         />
+        <Stack.Screen 
+          name="notifications" 
+          options={{ 
+            headerShown: false,
+            presentation: 'card',
+            animation: 'slide_from_right'
+          }} 
+        />
       </Stack>
     </>
   );
@@ -39,8 +51,11 @@ const RootLayoutNav = () => {
 
 const AppLayout = () => {
   const { isLoggedIn } = useAuth();
+  const pathname = usePathname();
 
-  if (!isLoggedIn) {
+  const isAuthPage = ['/login', '/register', '/forgot-password', '/forgot-password-otp'].includes(pathname);
+
+  if (!isLoggedIn && !isAuthPage) {
     return <LoginScreen />;
   }
 

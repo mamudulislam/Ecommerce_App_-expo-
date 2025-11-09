@@ -7,12 +7,12 @@ import {
   Dimensions,
   FlatList,
   Image,
+  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  SafeAreaView,
 } from 'react-native';
 import { useApp } from '../../../contexts/AppContext';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -49,7 +49,7 @@ const CartItem: React.FC<{
   };
 
   return (
-    <Animated.View style={[s.itemCard, { 
+    <Animated.View style={[s.itemCard, {
       backgroundColor: colors.card,
       borderColor: colors.borderLight,
       opacity: fadeAnim,
@@ -65,10 +65,10 @@ const CartItem: React.FC<{
             onPress={() => onQuantityChange(item.id, -1)}
             disabled={item.quantity <= 1}
           >
-            <Ionicons 
-              name="remove" 
-              size={18} 
-              color={item.quantity <= 1 ? colors.textTertiary : colors.textSecondary} 
+            <Ionicons
+              name="remove"
+              size={18}
+              color={item.quantity <= 1 ? colors.textTertiary : colors.textSecondary}
             />
           </TouchableOpacity>
           <Text style={[s.quantityText, { color: colors.text }]}>{item.quantity}</Text>
@@ -77,8 +77,8 @@ const CartItem: React.FC<{
           </TouchableOpacity>
         </View>
       </View>
-      <TouchableOpacity 
-        style={[s.removeBtn, { backgroundColor: colors.surface }]} 
+      <TouchableOpacity
+        style={[s.removeBtn, { backgroundColor: colors.surface }]}
         onPress={handleRemove}
       >
         <Ionicons name="trash-outline" size={20} color={colors.error} />
@@ -102,7 +102,7 @@ const PromoCode = () => {
   return (
     <View style={s.promoSection}>
       <Text style={[s.promoTitle, { color: colors.text }]}>Promo Code</Text>
-      <View style={[s.promoInputWrapper, { 
+      <View style={[s.promoInputWrapper, {
         backgroundColor: colors.surface,
         borderColor: isApplied ? colors.success : colors.border,
       }]}>
@@ -114,10 +114,10 @@ const PromoCode = () => {
           onChangeText={setCode}
           editable={!isApplied}
         />
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
-            s.promoApplyBtn, 
-            { 
+            s.promoApplyBtn,
+            {
               backgroundColor: isApplied ? colors.success : colors.primary,
               opacity: (!code.trim() || isApplied) ? 0.6 : 1
             }
@@ -182,13 +182,13 @@ const CheckoutButton = ({ disabled }: { disabled: boolean }) => {
   };
 
   return (
-    <TouchableOpacity 
-      style={[s.checkoutBtn, disabled && s.checkoutBtnDisabled]} 
+    <TouchableOpacity
+      style={[s.checkoutBtn, disabled && s.checkoutBtnDisabled]}
       onPress={handleCheckout}
       disabled={disabled}
     >
-      <LinearGradient 
-        colors={disabled ? [colors.textTertiary, colors.textTertiary] : [colors.primary, colors.primaryDark]} 
+      <LinearGradient
+        colors={disabled ? [colors.textTertiary, colors.textTertiary] : [colors.primary, colors.primaryDark]}
         style={s.checkoutGradient}
       >
         <Text style={s.checkoutText}>Proceed to Checkout</Text>
@@ -209,11 +209,11 @@ const EmptyCart = () => {
         <Text style={[s.emptySubtitle, { color: colors.textSecondary }]}>
           Add some products to get started!
         </Text>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[s.emptyBtn, { backgroundColor: colors.primary }]}
           onPress={() => router.push('/tabs/Home')}
         >
-          <Text style={s.emptyBtnText}>Browse Products</Text>
+          <Text style={s.emptyBtnText}>Go to Shop now</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -239,10 +239,10 @@ export default function CartTab() {
         data={cart}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <CartItem 
-            item={item} 
-            onQuantityChange={updateCartQuantity} 
-            onRemove={removeFromCart} 
+          <CartItem
+            item={item}
+            onQuantityChange={updateCartQuantity}
+            onRemove={removeFromCart}
           />
         )}
         ListHeaderComponent={<CartHeader itemCount={cart.length} />}
@@ -263,29 +263,29 @@ export default function CartTab() {
 
 /* ────────────────────── Styles ────────────────────── */
 const s = StyleSheet.create({
-  container: { 
+  container: {
     flex: 1,
   },
   list: {
     flex: 1,
   },
-  listContent: { 
-    padding: 20, 
+  listContent: {
+    padding: 20,
     paddingBottom: 40,
   },
 
   /* Header */
-  header: { 
+  header: {
     marginBottom: 24,
     paddingTop: 10,
   },
-  headerTitle: { 
-    fontSize: 28, 
+  headerTitle: {
+    fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.5,
   },
-  headerSubtitle: { 
-    fontSize: 16, 
+  headerSubtitle: {
+    fontSize: 16,
     marginTop: 4,
     opacity: 0.7,
   },
@@ -303,25 +303,25 @@ const s = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
   },
-  itemImage: { 
-    width: 80, 
-    height: 80, 
-    borderRadius: 12, 
+  itemImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
     marginRight: 16,
   },
-  itemDetails: { 
+  itemDetails: {
     flex: 1,
     marginRight: 12,
   },
-  itemName: { 
-    fontSize: 16, 
+  itemName: {
+    fontSize: 16,
     fontWeight: '600',
     lineHeight: 20,
     marginBottom: 4,
   },
-  itemPrice: { 
-    fontSize: 18, 
-    fontWeight: '700', 
+  itemPrice: {
+    fontSize: 18,
+    fontWeight: '700',
     marginBottom: 8,
   },
   quantityWrapper: {
@@ -331,7 +331,7 @@ const s = StyleSheet.create({
     padding: 4,
     alignSelf: 'flex-start',
   },
-  quantityBtn: { 
+  quantityBtn: {
     padding: 6,
     borderRadius: 12,
     minWidth: 32,
@@ -341,26 +341,26 @@ const s = StyleSheet.create({
   quantityBtnDisabled: {
     opacity: 0.4,
   },
-  quantityText: { 
-    fontWeight: '600', 
+  quantityText: {
+    fontWeight: '600',
     marginHorizontal: 12,
     fontSize: 16,
     minWidth: 20,
     textAlign: 'center',
   },
-  removeBtn: { 
+  removeBtn: {
     padding: 8,
     borderRadius: 12,
     alignSelf: 'flex-start',
   },
 
   /* Promo */
-  promoSection: { 
+  promoSection: {
     marginVertical: 24,
   },
-  promoTitle: { 
-    fontSize: 16, 
-    fontWeight: '600', 
+  promoTitle: {
+    fontSize: 16,
+    fontWeight: '600',
     marginBottom: 12,
   },
   promoInputWrapper: {
@@ -369,8 +369,8 @@ const s = StyleSheet.create({
     borderWidth: 1,
     overflow: 'hidden',
   },
-  promoInput: { 
-    flex: 1, 
+  promoInput: {
+    flex: 1,
     padding: 16,
     fontSize: 16,
   },
@@ -379,14 +379,14 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  promoApplyText: { 
-    color: '#fff', 
+  promoApplyText: {
+    color: '#fff',
     fontWeight: '600',
     fontSize: 14,
   },
 
   /* Summary */
-  summary: { 
+  summary: {
     marginBottom: 24,
     borderRadius: 16,
     padding: 20,
@@ -396,34 +396,34 @@ const s = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  summaryRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 12,
   },
-  summaryLabel: { 
+  summaryLabel: {
     fontSize: 15,
   },
-  summaryValue: { 
+  summaryValue: {
     fontSize: 15,
     fontWeight: '500',
   },
-  summaryDivider: { 
-    height: 1, 
+  summaryDivider: {
+    height: 1,
     marginVertical: 12,
   },
-  summaryTotalLabel: { 
-    fontSize: 18, 
+  summaryTotalLabel: {
+    fontSize: 18,
     fontWeight: '700',
   },
-  summaryTotalValue: { 
-    fontSize: 18, 
+  summaryTotalValue: {
+    fontSize: 18,
     fontWeight: '700',
   },
 
   /* Checkout */
-  checkoutBtn: { 
-    borderRadius: 16, 
+  checkoutBtn: {
+    borderRadius: 16,
     overflow: 'hidden',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -433,24 +433,24 @@ const s = StyleSheet.create({
   checkoutBtnDisabled: {
     opacity: 0.6,
   },
-  checkoutGradient: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
+  checkoutGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 18,
   },
-  checkoutText: { 
-    color: '#fff', 
-    fontWeight: '700', 
+  checkoutText: {
+    color: '#fff',
+    fontWeight: '700',
     fontSize: 17,
     letterSpacing: 0.5,
   },
-  checkoutIcon: { 
+  checkoutIcon: {
     marginLeft: 8,
   },
 
   /* Empty State */
-  emptyContainer: { 
+  emptyContainer: {
     flex: 1,
   },
   emptyContent: {
@@ -459,14 +459,14 @@ const s = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 40,
   },
-  emptyTitle: { 
-    fontSize: 24, 
-    fontWeight: '700', 
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: '700',
     marginTop: 24,
     textAlign: 'center',
   },
-  emptySubtitle: { 
-    fontSize: 16, 
+  emptySubtitle: {
+    fontSize: 16,
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 22,
@@ -482,9 +482,9 @@ const s = StyleSheet.create({
     shadowRadius: 8,
     elevation: 6,
   },
-  emptyBtnText: { 
-    color: '#fff', 
-    fontWeight: '600', 
+  emptyBtnText: {
+    color: '#fff',
+    fontWeight: '600',
     fontSize: 16,
     letterSpacing: 0.5,
   },

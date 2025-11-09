@@ -6,11 +6,11 @@ import {
   Dimensions,
   FlatList,
   Image,
+  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  SafeAreaView,
 } from 'react-native';
 import { useApp } from '../../../contexts/AppContext';
 import { useTheme } from '../../../contexts/ThemeContext';
@@ -82,11 +82,11 @@ const WishlistCard: React.FC<{
         },
       ]}
     >
-      <TouchableOpacity 
-        activeOpacity={0.9} 
-        style={[s.cardInner, { 
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={[s.cardInner, {
           backgroundColor: colors.card,
-          borderColor: colors.borderLight 
+          borderColor: colors.borderLight
         }]}
         onPress={() => router.push(`/product/${item.id}`)}
       >
@@ -97,7 +97,7 @@ const WishlistCard: React.FC<{
               <Text style={s.outOfStockText}>Out of Stock</Text>
             </View>
           )}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[s.heartBtn, { backgroundColor: colors.surface }]}
             onPress={handleRemove}
           >
@@ -126,11 +126,11 @@ const WishlistCard: React.FC<{
               <Text style={s.actionBtnText}>Add to Cart</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity 
-              style={[s.actionBtn, s.removeBtn, { 
+            <TouchableOpacity
+              style={[s.actionBtn, s.removeBtn, {
                 backgroundColor: colors.surface,
-                borderColor: colors.error 
-              }]} 
+                borderColor: colors.error
+              }]}
               onPress={handleRemove}
             >
               <Ionicons name="trash-outline" size={16} color={colors.error} />
@@ -150,11 +150,11 @@ const EmptyWishlist = () => {
       <Ionicons name="heart-outline" size={80} color={colors.textTertiary} />
       <Text style={[s.emptyTitle, { color: colors.text }]}>Your Wishlist is Empty</Text>
       <Text style={[s.emptySubtitle, { color: colors.textSecondary }]}>Save items you love for later!</Text>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={[s.emptyBtn, { backgroundColor: colors.primary }]}
         onPress={() => router.push('/tabs/Home')}
       >
-        <Text style={s.emptyBtnText}>Start Browsing</Text>
+        <Text style={s.emptyBtnText}>Select your product</Text>
       </TouchableOpacity>
     </View>
   );
