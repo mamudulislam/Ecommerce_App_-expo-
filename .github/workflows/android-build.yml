@@ -3,27 +3,56 @@ name: Build Android APK
 on:
   push:
     branches:
-      - main
+      - main # Trigger build on push to main branch
+  workflow_dispatch: # Allows manual trigger from GitHub
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout your repo
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Set up Node.js
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # Step 3: Install Yarn (optional if using npm)
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      # Step 4: Install EAS CLI
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
+      # Step 5: Install project dependencies
       - name: Install dependencies
         run: yarn install
 
-      - name: Build APK
+      # Step 6: Verify EAS is initialized
+      - name: Verify EAS config
+        run: |
+          if [ ! -f eas.json ]; then
+            echo "EAS not initialized. Run 'npx eas init' locally first."
+            exit 1
+          else
+            cat eas.json
+          fi
+
+      # Step 7: Build Android APK using EAS
+      - name: Build Android APK
         run: eas build --platform android --profile preview --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      # Step 8: Upload APK artifact to GitHub
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release-apk
+          path: |
+            ./dist/*.apk
